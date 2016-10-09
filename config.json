@@ -1,0 +1,8 @@
+{
+  "tool-sets":{
+    "path":"/path/to/your/project",
+    "command":"./shell/tool-sets.sh",
+    "secret":"xxxxxx",
+    "platform":"github"
+  }
+}
