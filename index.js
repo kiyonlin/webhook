@@ -1,10 +1,10 @@
 const http = require('http');
+const path = require('path');
+const fs = require('fs');
 const codingHandler = require('coding-webhook-handler');
 const githubHandler = require('github-webhook-handler');
 const spawn = require('child_process').spawn;
 const mailer = require('./modules/mailer');
-
-const fs = require('fs');
 
 fs.readFile('./config.json', 'utf-8', (err, data) => {
   if (err) throw (err);
@@ -36,7 +36,8 @@ const webhook = (config) => {
 
     handler.on('push', event => {
       if (config[name].command) {
-        runCommand('sh', [config[name].command], txt => {
+        runCommand('sh', [path.join(__dirname,config[name].command)], {cwd:config[name].path}, txt => {
+          console.log(new Date());
           console.log(txt);
           mailer({
             subject: name+' 部署成功',
@@ -51,17 +52,25 @@ const webhook = (config) => {
 
   http.createServer((req, res) => {
     let i = nameArr.indexOf( req.url.split('?').shift() );
-    if(i<0) throw new Error('请确认webhook上的url格式是否正确');
-    handlerArr[i](req,res,(err) => {
+    if(i<0){
       res.statusCode = 404;
       res.end('no such location');
-    });
+      return;
+    };
+    handlerArr[i](req,res);
   }).listen(7777);
 }
 
-const runCommand = (cmd, args, callback) => {
-  const child = spawn(cmd, args);
+const runCommand = (cmd, args, options, callback) => {
+  const child = spawn(cmd, args, options);
   let response = '';
+
   child.stdout.on('data', buffer => response += buffer.toString());
   child.stdout.on('end', () => callback(response));
+
+  //let err = '';
+  /*child.stderr.on('data', buffer => err += buffer.toString());
+  child.stderr.on('end', () => {
+    if(err) callback(err);
+  });*/
 }

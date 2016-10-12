@@ -67,7 +67,6 @@ const defaultMail = {
 ```shell
 #! /bin/bash
 
-cd /path/to/your/project
 git reset --hard origin/master
 git clean -f
 git pull origin master
